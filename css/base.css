@@ -46,7 +46,8 @@ body {
 }
 
 button,
-input {
+input,
+select {
   font: inherit;
 }
 
@@ -56,6 +57,7 @@ button {
 
 button:focus-visible,
 input:focus-visible,
+select:focus-visible,
 [tabindex]:focus-visible {
   outline: 3px solid rgb(22 114 99 / 24%);
   outline-offset: 2px;

@@ -170,6 +170,7 @@
 
 .base-table-root .sheet-scroll {
   max-height: clamp(320px, calc(100vh - 230px), 880px);
+  max-height: clamp(320px, calc(100dvh - 230px), 880px);
   overflow: auto;
   scrollbar-color: #b8c5c1 transparent;
   scrollbar-width: thin;
@@ -365,6 +366,13 @@
   font-size: 11px;
 }
 
+.base-table-root .footer-summary {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
 .base-table-root .editor-footer p {
   margin: 0;
 }
@@ -373,6 +381,56 @@
   color: var(--ink-soft);
   font-family: var(--font-mono);
   font-weight: 600;
+}
+
+.base-table-root .scope-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.base-table-root .scope-label {
+  color: var(--ink-faint);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.base-table-root .scope-select-wrap {
+  position: relative;
+}
+
+.base-table-root .scope-select-wrap::after {
+  position: absolute;
+  top: 50%;
+  right: 11px;
+  width: 6px;
+  height: 6px;
+  border-right: 1.5px solid var(--ink-faint);
+  border-bottom: 1.5px solid var(--ink-faint);
+  content: "";
+  pointer-events: none;
+  transform: translateY(-68%) rotate(45deg);
+}
+
+.base-table-root .scope-select {
+  min-width: 132px;
+  min-height: 32px;
+  appearance: none;
+  padding: 0 30px 0 11px;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  color: var(--ink);
+  background: var(--surface);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 650;
+}
+
+.base-table-root .scope-select:hover {
+  border-color: var(--accent-line);
 }
 
 .base-table-root .confirm-dialog {
@@ -482,6 +540,19 @@
     display: none;
   }
 
+  .base-table-root table {
+    min-width: 704px;
+  }
+
+  .base-table-root th:first-child {
+    width: 160px;
+  }
+
+  .base-table-root th:not(:first-child),
+  .base-table-root td {
+    width: 136px;
+  }
+
   .base-table-root .editor-toolbar {
     gap: 8px;
   }
@@ -493,19 +564,33 @@
 
 @media (max-width: 820px) {
   .base-table-root table {
-    min-width: 660px;
+    min-width: 588px;
   }
 
   .base-table-root th:first-child {
-    width: 164px;
+    width: 140px;
+  }
+
+  .base-table-root th:not(:first-child),
+  .base-table-root td {
+    width: 112px;
+    min-width: 112px;
   }
 
   .base-table-root .editor-footer {
-    justify-content: flex-end;
+    align-items: stretch;
+    flex-direction: column;
+    justify-content: center;
+    gap: 8px;
+    padding-block: 12px;
+  }
+
+  .base-table-root .scope-control {
+    justify-content: space-between;
   }
 }
 
-@media (max-width: 960px) {
+@media (max-width: 1080px) {
   .base-table-root .editor-toolbar {
     padding: 8px 10px;
     gap: 6px;
@@ -569,8 +654,55 @@
   }
 }
 
+@media (max-width: 600px) {
+  .base-table-root .editor-toolbar {
+    flex-wrap: wrap;
+    row-gap: 7px;
+    overflow: visible;
+  }
+
+  .base-table-root .selection-summary {
+    flex-basis: 100%;
+  }
+
+  .base-table-root .toolbar-controls {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .base-table-root .tool-group {
+    gap: 1px;
+    padding: 2px 4px;
+  }
+
+  .base-table-root .tool-group-label {
+    display: block;
+    padding: 0 2px;
+    font-size: 9px;
+  }
+
+  .base-table-root .editor-toolbar .history-actions {
+    margin-left: auto;
+  }
+}
+
 @media (max-width: 540px) {
+  .base-table-root table {
+    min-width: 564px;
+  }
+
+  .base-table-root th:first-child {
+    width: 132px;
+  }
+
+  .base-table-root th:not(:first-child),
+  .base-table-root td {
+    width: 108px;
+    min-width: 108px;
+  }
+
   .base-table-root .editor-footer {
+    min-height: 50px;
     padding-inline: 16px;
   }
 }

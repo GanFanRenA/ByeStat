@@ -75,7 +75,7 @@
 
 @media (max-width: 820px) {
   .base-table-root .tool-margin {
-    min-width: 800px;
+    min-width: 700px;
   }
 
   .base-table-root .tool-margin thead th:last-child {
@@ -90,5 +90,11 @@
 
   .base-table-root .tool-margin .margin-grand-total {
     right: auto;
+  }
+}
+
+@media (max-width: 540px) {
+  .base-table-root .tool-margin {
+    min-width: 672px;
   }
 }

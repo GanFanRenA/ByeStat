@@ -1,63 +1,26 @@
 # AGENTS.md
 
-ByeStat 是一个可直接打开使用的静态单页数据工具站。数据统计表是所有工具共享
-的基础工作区；当前第一个工具为 Margin，为表格追加行、列与全表总计。
-shell 与工具注册机制为后续 Venn、概率统计等工具预留，不为了“可能新增工具”
-引入空实现或依赖。
+ByeStat 是一个可通过 `file://` 直接打开的静态单页数据工具。基础统计表是共享
+数据源，工具通过 registry 按需加载，并可通过 `workspace` 接入表格、语言和工具状态。
 
-## 运行与依赖
+## 核心原则
 
-- 零构建、零框架、零 CDN、零远程字体。Index 文件可直接通过 `file://` 打开。
-- 使用按固定顺序加载的经典浏览器脚本，不依赖 ES Module 或服务器。
-- 所有模块挂在 `window.ByeStat` 命名空间下，禁止隐式全局变量。
-- 只有浏览器原生 API、项目内文件及用户已明确批准的依赖可以使用。
-
-## 页面骨架
-
-- `index.html` 只保留文档元信息、根容器和核心脚本加载顺序。
-- 数据统计表的标题、表格和工具栏由基础表在 `mount()` 中创建，并由 shell
-  在页面生命周期内持续挂载。
-- 新增工具不得要求修改 `index.html`；工具由 registry 按需加载。
+- 零构建、零框架、零 CDN、零远程字体，只使用浏览器原生 API 和项目文件。
+- 表格数据只能来自 `store.getState()`；派生统计不得写回 store、持久化或进入撤销历史。
+- 单元格选区、输入草稿、滚动位置、Selection、提示消息属于 UI 状态，不是表格数据。
+- DOM 只做视图；用户内容必须通过 `textContent`、`value` 或等价安全 API 写入。
+- 工具之间不得直接调用；需要共享的逻辑只能放入不持有 store/DOM 状态的纯函数模块。
+- 优先复用现有接口，不为假想需求增加空实现、依赖或无调用方的抽象。
 
 ## 数据与 Store
 
-- 表格数据唯一真相在 `js/store.js` 创建的 store 中。
-- 读取统一调用 `store.getState()`；返回值必须是副本，调用方不得原地修改。
-- 所有数据写入必须经过 store 动作：
-  `updateCell`、`insertRow`、`deleteRow`、`insertColumn`、`deleteColumn`、
-  `reset`、`undo`。
-- 选区、输入草稿、滚动位置和提示消息属于 UI 状态，由当前工具管理，
-  不得冒充表格数据或持久化第二份表格。
-- store 发出 `cell`、`structure`、`reset`、`undo` 类型的变更通知。
-  单个订阅者报错不得中断其他订阅者。
-- `localStorage` 持久化集中处理，key 带版本号并使用 300ms 防抖。
-  保存状态通过 store 的状态订阅通知 shell。
-- 单元格连续输入属于一次编辑历史；失焦、切换单元格或结构操作后结束本次编辑，
-  避免撤销只回退一个字符。
-- Margin 等派生统计结果必须从 `store.getState()` 计算，不得写回表格数据，
-  不得作为第二份数据持久化或进入撤销历史。
-
-## DOM 与渲染
-
-- DOM 是视图，不是业务数据源。事件适配层只读取输入并派发语义操作。
-- 单元格内容变化只更新 store 和当前输入控件，不重建整张表。
-- 行列增删、重置、撤销等结构变化可以重建表格，但必须恢复有效选区、
-  焦点和全选状态。
-- 选中或移动单元格后必须让其完整避开顶部标题、左侧行标题、右侧 Margin
-  和底部列总计；
-  需要滚动时只调整表格自身，并按最小必要距离移动。
-- 不得在输入过程中打断中文输入法，不得因重绘丢失光标或键盘导航状态。
-- 用户可编辑内容只能通过 `textContent`、`value` 或等价安全 API 写入；
-  禁止用用户内容拼接 HTML。
-- 禁止用大段模板字符串生成组件；使用 `js/shared/dom.js` 或小型 `<template>`。
-
-## Store 契约
+表格数据唯一来源是 `js/store.js` 创建的 store。公开动作：
 
 ```js
 store.getState()
 store.subscribe(({ state, change }) => {})
-store.subscribeStatus((status) => {}) // "saving" | "saved" | "error"
-store.updateCell({ kind, row, col, value }, options)
+store.subscribeStatus((status) => {})
+store.updateCell(cell, options)
 store.insertRow(index)
 store.deleteRow(index)
 store.insertColumn(index)
@@ -66,79 +29,102 @@ store.reset()
 store.undo()
 store.endEdit()
 store.canUndo()
-store.dispose()
 ```
 
-`updateCell` 的 `kind` 为 `corner`、`column`、`row` 或 `number`。
-`options.mergeKey` 用于合并一次连续输入，`options.recordHistory` 允许
-Esc 取消草稿时不产生无意义的历史记录。
+`getState()` 返回副本。所有写入必须通过 store 动作。单元格连续输入共用一次
+编辑历史；失焦、切换单元格或结构操作后结束本次编辑。
 
-## 工具与插件契约
+渲染约束：
 
-- `js/tools/registry.js` 是唯一工具注册点。
-- 新增工具只需新增 `js/tools/<id>/` 目录，并在 registry 增加一个条目；
-  条目包含 `id`、边栏展示所需的 `name`、`description`、`icon`，
-  以及按顺序加载的脚本列表。
-- 工具最终注册：
-  `window.ByeStat.toolModules[id] = { id, name, description, icon, styleHref, mount }`。
-- `icon` 使用安全的 SVG path 数据，不得直接注入 HTML。
-- `mount(root, store, workspace)` 负责构建视图、绑定事件并返回幂等清理函数。
-- 基础表通过 `workspace.table.registerSummary()` 登记右侧派生列、底部派生行
-  及其纯计算函数；工具卸载时必须注销扩展。
-- `workspace.language` 提供 `locale`、`t(key, params)` 和 `subscribe(listener)`；
-  工具界面文案必须通过它读取，语言偏好由 shell 持久化。
-- shell 负责按需加载工具脚本和样式；切换或卸载工具时调用清理函数并移除样式。
-- 工具必须处理自身的事件、订阅、计时器、弹窗和提示消息。
-- 工具之间禁止互相调用。共享模块只能是纯函数，不得持有 store 或 DOM 状态。
-- 工具样式挂在 `.tool-<id>` 命名空间下，避免污染其他工具。
+- 单元格输入只更新 store 和当前输入控件，不重建整张表。
+- 结构变化可以重建表格，但必须保留有效选区、焦点和文本全选状态。
+- 不打断中文输入法，不用轮询，不把表格数据保存在 DOM 或模块级副本中。
 
-## 文件组织
+## Selection 与 Relative Frequency
 
-```text
-index.html
-css/base.css                 # token、reset、通用可访问性
-css/layout.css               # 仅 shell 布局
-css/shared/controls.css      # 可复用的无业务控件
-css/table.css                # 基础统计表样式
-css/tools/margin.css         # Margin 扩展样式
-js/shared/dom.js             # DOM 创建与安全工具
-js/shared/i18n.js            # 中英文案与纯翻译函数
-js/store/state.js            # 默认状态、规范化、标签生成
-js/store/persistence.js      # localStorage 与防抖保存
-js/store.js                  # store 创建与公开动作
-js/shell.js                  # 应用壳、工具加载和生命周期
-js/shell/language.js         # 语言状态、本地偏好和切换按钮
-js/shell/sidebar.js          # 边栏结构、导航与保存状态
-js/tools/registry.js         # 工具注册表
-js/table/index.js            # 基础表生命周期与状态编排
-js/table/view.js             # 页面结构和静态控件
-js/table/summary.js          # 派生行列的创建与局部更新
-js/table/render.js           # 表格与扩展行列创建、更新
-js/table/adapt.js            # 输入、键盘、点击事件适配
-js/table/selection.js        # 基础表选区状态与可选持久化
-js/table/scroll.js           # 选中单元格的粘性遮挡与滚动露出
-js/tools/margin/calc.js      # Margin 纯计算
-js/tools/margin/index.js     # Margin 生命周期与扩展注册
+Selection 是基础表页脚提供的全局统计范围，内部名为 `analysisScope`，值为：
+
+- `total`：By total
+- `row`：By row
+- `column`：By column
+
+工具通过以下接口读取和订阅：
+
+```js
+workspace.table.getAnalysisScope()
+workspace.table.subscribeAnalysisScope((scope) => {})
 ```
 
-## 规模与职责
+Selection 只改变统计口径或图形布局，不改变表格数据。Relative Frequency 开启时的
+分母规则固定为：
 
-- 下列数值是默认上限；超过时应先说明为什么无法按职责继续拆分。
-- `index.html` ≤ 60 行；`base.css` ≤ 160 行。
-- `js/store.js` 与 `js/shell.js` 各 ≤ 220 行。
-- 基础表与工具 `index.js` ≤ 180 行；`view.js`、`render.js`、`adapt.js` 各 ≤ 300 行。
-- 单工具 JS + CSS 总量 ≤ 1600 行。
-- 单个函数默认 ≤ 60 行；优先按职责拆分，不按空行或机械换行“达标”。
-- 单文件只承担一种主要改动原因。
+| Selection | 单元格相对频率 |
+|---|---|
+| By total | 单元格 / 全表总计 |
+| By row | 单元格 / 所在行总计 |
+| By column | 单元格 / 所在列总计 |
 
-## 验证要求
+分母为 `0` 时结果无效（`null`），不得伪造为有效的 `0`。
 
-- 修改后告诉我该做哪些测试，应该有什么效果。
+Relative Frequency 是独立工具，没有自己的范围选择控件。它读取 Selection，在表格
+数值单元格中显示只读计算式和结果。开启 Relative Frequency 时：
 
-## 禁止
+- By total 还会为 Margin 的行总计、列总计和全表总计提供相对值。
+- By row 和 By column 只派生普通单元格；Margin 仍可显示，但汇总单元格只显示原始总计。
+- Margin 与 Relative Frequency 可以同时开启，不存在互斥关系。
 
-- 把表格数据直接存在 DOM、其他工具或模块级副本中。
-- 轮询状态，或为单元格每次按键都重建整张表格。
-- 引入框架、打包器、CDN、远程字体或未经批准的外部服务。
-- 在 `index.html`、`base.css` 或 `layout.css` 中写具体工具业务样式。
-- 生成与项目无关的文档、接口或抽象；架构变化时同步更新 AGENTS.md 即可。
+图形工具必须区分两个维度：
+
+1. Selection 始终决定统计范围和数据布局。
+2. Relative Frequency 是否开启只决定显示原始数字还是百分数，不决定布局。
+
+因此，新增 graph 时必须同时订阅 Selection，不能根据 Relative Frequency 的启停状态
+猜测布局。需要百分比时使用 `ByeStat.frequency.calculate(state, scope)` 的共享计算，
+并通过 `workspace.tools.isActive("percentage")` /
+`subscribe(listener)` 取得 Relative Frequency 启停状态。
+
+## 工具契约
+
+- `js/tools/registry.js` 是唯一注册点。新工具只需新增 `js/tools/<id>/` 并在 registry
+  增加 `id`、`section`、名称、描述、图标和安全 SVG path、脚本及样式。
+- `mount(root, store, workspace)` 构建视图、绑定事件并返回幂等清理函数。
+- 工具必须清理自己的订阅、事件、计时器、弹窗和提示消息。
+- 工具样式限制在 `.tool-<id>` 中；界面文案通过 `workspace.language` 获取。
+- `workspace.table.registerSummary()` 用于派生行列。
+- `workspace.table.registerCellDisplay()` 用于数值单元格的只读派生显示，可选
+  `summary` 扩展现有汇总；工具卸载时必须注销。
+- `workspace.tools.isActive(id)` 和 `workspace.tools.subscribe(listener)` 只用于读取
+  其他工具的启停状态，不得借此调用工具。
+
+## 当前工具
+
+### Margin
+
+在表格右侧和底部追加原始行总计、列总计和全表总计。与 Relative Frequency 同时开启
+且 Selection 为 By total 时，汇总单元格额外显示相对值。
+
+### Relative Frequency
+
+作为表格派生显示层工作，没有独立面板。它按 Selection 计算每个数值单元格；仅
+By total 时扩展 Margin 汇总。工具卸载后应移除全部派生显示。
+
+### Bar chart
+
+柱状图布局只由 Selection 决定：
+
+- By total 与 By row：行是 Target，列是属性；布局完全相同。
+- By column：列是 Target，行是属性；布局相对前两者转置。
+
+开启 Relative Frequency 时柱值为百分数，关闭时为原始数字。By total 与 By row 的
+区别只在开启 Relative Frequency 时体现为不同分母。每个柱都必须显示自身数值标签。
+排序控件只改变 Target 顺序，不改变 Target/属性定义。
+
+## 新增 Graph 检查清单
+
+- 使用 `store.getState()` 计算，不保存第二份表格数据。
+- 订阅 store、Selection 和语言；依赖 Relative Frequency 显示格式时再订阅工具状态。
+- 明确写出 `total`、`row`、`column` 三种 Selection 下的 Target/属性映射。
+- Selection 改变布局；Relative Frequency 只改变数字或百分数表现。
+- 数值标签、坐标轴、图例和统计摘要使用同一单位。
+- 在自己的 `unmount` 中注销全部订阅和扩展，卸载后不得继续响应数据变化。
+- 检查单元格编辑、行列增删、重置、撤销、工具启停、中英文切换和移动端。

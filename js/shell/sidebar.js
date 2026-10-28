@@ -9,6 +9,67 @@
     return key ? language.t(key) : entry[field];
   }
 
+  function createToolItem(entry, onToggleTool, navigationRefs) {
+    const name = h("strong");
+    const description = h("small");
+    const item = h(
+      "button",
+      {
+        class: "tool-nav-item",
+        type: "button",
+        dataset: { toolId: entry.id },
+      },
+      h(
+        "span",
+        { class: "tool-nav-icon", attrs: { "aria-hidden": "true" } },
+        icon(entry.icon || ["M5 5h14v14H5z"]),
+      ),
+      h("span", { class: "tool-nav-copy" }, name, description),
+    );
+    item.addEventListener("click", () => onToggleTool(entry.id));
+    navigationRefs.set(entry.id, { description, entry, item, name });
+    return item;
+  }
+
+  function createSections(onToggleTool, navigationRefs) {
+    const entries = ByeStat.registry || [];
+    const sections = (ByeStat.toolSections || []).map((section) => {
+      const label = h("p", {
+        class: "sidebar-label",
+        id: `sidebar-section-${section.id}`,
+      });
+      const toolEntries = entries.filter(
+        (entry) => (entry.section || "analysis") === section.id,
+      );
+      const toolList = h(
+        "div",
+        { class: "tool-list" },
+        toolEntries.map((entry) =>
+          createToolItem(entry, onToggleTool, navigationRefs),
+        ),
+      );
+      const element = h(
+        "section",
+        {
+          class: "sidebar-section",
+          dataset: { section: section.id },
+          attrs: { "aria-labelledby": label.id },
+        },
+        label,
+        toolList,
+      );
+      return { element, label, section };
+    });
+    return {
+      container: h(
+        "div",
+        { class: "sidebar-sections" },
+        sections.map((entry) => entry.element),
+      ),
+      sections,
+    };
+  }
+
   function createSidebar({ language, onToggleTool }) {
     const navigationRefs = new Map();
     let lastSaveStatus = "saved";
@@ -31,33 +92,12 @@
       ),
       h("span", { class: "brand-copy" }, h("strong", { text: "ByeStat" }), brandSubtitle),
     );
-    const sidebarLabel = h("p", { class: "sidebar-label" });
-    const toolList = h(
-      "div",
-      { class: "tool-list" },
-      ByeStat.registry.map((entry) => {
-        const name = h("strong");
-        const description = h("small");
-        const item = h(
-          "button",
-          {
-            class: "tool-nav-item",
-            type: "button",
-            dataset: { toolId: entry.id },
-          },
-          h(
-            "span",
-            { class: "tool-nav-icon", attrs: { "aria-hidden": "true" } },
-            icon(entry.icon || ["M5 5h14v14H5z"]),
-          ),
-          h("span", { class: "tool-nav-copy" }, name, description),
-        );
-        item.addEventListener("click", () => onToggleTool(entry.id));
-        navigationRefs.set(entry.id, { description, entry, item, name });
-        return item;
-      }),
+    const sectionNavigation = createSections(onToggleTool, navigationRefs);
+    const navigation = h(
+      "nav",
+      { class: "sidebar-nav" },
+      sectionNavigation.container,
     );
-    const navigation = h("nav", { class: "sidebar-nav" }, sidebarLabel, toolList);
     const sidebar = h(
       "aside",
       { class: "app-sidebar" },
@@ -81,7 +121,9 @@
         language.t("shell.nav.toolNavigationAria"),
       );
       setText(brandSubtitle, language.t("shell.workspace"));
-      setText(sidebarLabel, language.t("shell.nav.tools"));
+      sectionNavigation.sections.forEach(({ label, section }) => {
+        setText(label, language.t(section.i18n?.name || "shell.nav.tools"));
+      });
       setText(saveNote, language.t("shell.save.note"));
       navigationRefs.forEach(({ description, entry, name }) => {
         setText(name, getToolText(entry, "name", language) || entry.id);
@@ -94,9 +136,10 @@
       applySaveStatus(lastSaveStatus);
     }
 
-    function setActive(id) {
+    function setActive(ids) {
+      const activeIds = new Set(Array.isArray(ids) ? ids : ids ? [ids] : []);
       navigationRefs.forEach(({ item }, toolId) => {
-        const active = toolId === id;
+        const active = activeIds.has(toolId);
         item.classList.toggle("is-active", active);
         if (active) item.setAttribute("aria-current", "page");
         else item.removeAttribute("aria-current");

@@ -1,0 +1,82 @@
+.base-table-root table.tool-percentage {
+  min-width: 900px;
+}
+
+.base-table-root .tool-percentage td[data-row][data-col] {
+  position: relative;
+}
+
+.base-table-root .tool-percentage td[data-row][data-col] .cell-input {
+  padding-top: 7px;
+  padding-bottom: 24px;
+}
+
+.base-table-root .tool-percentage [data-derived-cell="percentage"] {
+  position: absolute;
+  right: 12px;
+  bottom: 6px;
+  max-width: calc(100% - 24px);
+  overflow: hidden;
+  padding: 1px 5px;
+  border-radius: 5px;
+  color: var(--accent-deep);
+  background: var(--accent-soft);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 650;
+  line-height: 1.4;
+  letter-spacing: -0.02em;
+  pointer-events: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.base-table-root .tool-percentage .margin-cell {
+  position: relative;
+}
+
+.base-table-root .tool-percentage .margin-cell .margin-value {
+  padding-top: 5px;
+  padding-bottom: 20px;
+  line-height: 1.2;
+}
+
+.base-table-root .tool-percentage .derived-summary-value {
+  position: absolute;
+  right: 12px;
+  bottom: 6px;
+  left: 12px;
+  overflow: hidden;
+  color: var(--accent-deep);
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  line-height: 1.35;
+  pointer-events: none;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 820px) {
+  .base-table-root table.tool-percentage {
+    min-width: 834px;
+  }
+
+  .base-table-root .tool-percentage th:first-child {
+    width: 150px;
+  }
+
+  .base-table-root .tool-percentage th:not(:first-child),
+  .base-table-root .tool-percentage td {
+    width: 146px;
+    min-width: 146px;
+  }
+
+  .base-table-root table.tool-percentage.tool-margin {
+    min-width: 990px;
+  }
+}

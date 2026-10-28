@@ -250,6 +250,10 @@
       if (button) controls.runAction(button.dataset.action);
     }
 
+    function handleScopeChange() {
+      controls.setScope(refs.scopeControl.select.value);
+    }
+
     function handleUndo() {
       controls.undo();
     }
@@ -274,6 +278,7 @@
     listen(refs.table, "blur", handleBlur, true);
     listen(refs.table, "keydown", handleKeydown);
     listen(refs.root, "click", handleActionClick);
+    listen(refs.scopeControl.select, "change", handleScopeChange);
     listen(refs.undoButton, "click", handleUndo);
     listen(refs.confirmReset, "click", handleResetConfirm);
     listen(refs.resetButton, "click", handleResetRequest);

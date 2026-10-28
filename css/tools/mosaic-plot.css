@@ -1,0 +1,352 @@
+.tool-mosaic-plot {
+  min-width: 0;
+}
+
+.tool-mosaic-plot .mosaic-plot-panel {
+  overflow: hidden;
+  border: 1px solid rgb(200 211 207 / 88%);
+  border-radius: var(--radius-xl);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.tool-mosaic-plot .mosaic-plot-header {
+  padding: 22px 24px 18px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 28px;
+}
+
+.tool-mosaic-plot .mosaic-plot-heading {
+  min-width: 0;
+}
+
+.tool-mosaic-plot .mosaic-plot-eyebrow {
+  margin: 0 0 5px;
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 750;
+  letter-spacing: 0.16em;
+}
+
+.tool-mosaic-plot .mosaic-plot-heading h2 {
+  margin: 0;
+  font-family: "Iowan Old Style", "Songti SC", "STSong", Georgia, serif;
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.tool-mosaic-plot .mosaic-plot-description {
+  max-width: 620px;
+  margin: 6px 0 0;
+  color: var(--ink-soft);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.tool-mosaic-plot .mosaic-plot-stats {
+  flex: 0 0 auto;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(92px, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  background: var(--line);
+}
+
+.tool-mosaic-plot .mosaic-plot-stat {
+  min-width: 92px;
+  padding: 10px 13px 9px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  background: var(--surface-muted);
+}
+
+.tool-mosaic-plot .mosaic-plot-stat-label {
+  color: var(--ink-faint);
+  font-family: var(--font-mono);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+.tool-mosaic-plot .mosaic-plot-stat-value {
+  overflow: hidden;
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 750;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tool-mosaic-plot .mosaic-plot-controls {
+  padding: 13px 24px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  border-top: 1px solid var(--line);
+  background: #fbfcfb;
+}
+
+.tool-mosaic-plot .mosaic-plot-control {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.tool-mosaic-plot .mosaic-plot-control-label {
+  flex: 0 0 auto;
+  color: var(--ink-faint);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+.tool-mosaic-plot .mosaic-plot-layout-value {
+  min-height: 32px;
+  padding: 0 11px;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--accent-deep);
+  background: var(--accent-soft);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.tool-mosaic-plot .mosaic-plot-order {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+}
+
+.tool-mosaic-plot .mosaic-plot-order-button {
+  min-height: 29px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 7px;
+  color: var(--ink-faint);
+  background: transparent;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.tool-mosaic-plot .mosaic-plot-order-button:hover {
+  color: var(--ink);
+  background: var(--surface-muted);
+}
+
+.tool-mosaic-plot .mosaic-plot-order-button.is-active {
+  color: var(--accent-deep);
+  background: var(--accent-soft);
+  box-shadow: inset 0 0 0 1px rgb(22 114 99 / 10%);
+}
+
+.tool-mosaic-plot .mosaic-plot-stage {
+  padding: 0 18px 14px;
+  border-top: 1px solid var(--line);
+  background:
+    linear-gradient(180deg, rgb(247 250 249 / 72%), transparent 110px),
+    var(--surface);
+}
+
+.tool-mosaic-plot .mosaic-plot-legend {
+  min-height: 42px;
+  padding: 8px 4px 7px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 15px;
+}
+
+.tool-mosaic-plot .mosaic-plot-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ink-soft);
+  font-size: 10px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.tool-mosaic-plot .mosaic-plot-legend-swatch {
+  width: 8px;
+  height: 8px;
+  flex: 0 0 auto;
+  border-radius: 2px;
+}
+
+.tool-mosaic-plot .mosaic-plot-viewport {
+  min-height: 410px;
+  margin: 0 -18px;
+  padding: 6px 18px 0;
+  overflow-x: auto;
+  scrollbar-color: var(--line-strong) transparent;
+  scrollbar-width: thin;
+}
+
+.tool-mosaic-plot .mosaic-plot-viewport.is-empty {
+  min-height: 220px;
+  display: grid;
+  place-items: center;
+  color: var(--ink-faint);
+  font-size: 12px;
+}
+
+.tool-mosaic-plot .mosaic-plot-svg {
+  height: auto;
+  display: block;
+  overflow: visible;
+}
+
+.tool-mosaic-plot .mosaic-plot-area-title,
+.tool-mosaic-plot .mosaic-plot-target-label,
+.tool-mosaic-plot .mosaic-plot-value {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.tool-mosaic-plot .mosaic-plot-area-title {
+  fill: var(--ink-faint);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+.tool-mosaic-plot .mosaic-plot-area-rule {
+  stroke: var(--line);
+  stroke-dasharray: 2 5;
+  stroke-width: 1;
+}
+
+.tool-mosaic-plot .mosaic-plot-target-label {
+  fill: var(--ink-soft);
+  font-size: 10px;
+  font-weight: 650;
+}
+
+.tool-mosaic-plot .mosaic-plot-area {
+  stroke: rgb(255 255 255 / 55%);
+  stroke-width: 1;
+  transition:
+    filter 160ms ease,
+    opacity 160ms ease;
+}
+
+.tool-mosaic-plot .mosaic-plot-cell:hover .mosaic-plot-area {
+  filter: brightness(1.07) drop-shadow(0 5px 8px rgb(27 49 43 / 18%));
+}
+
+.tool-mosaic-plot .mosaic-plot-value {
+  fill: #fff;
+  font-size: 9px;
+  font-weight: 750;
+  paint-order: stroke;
+  pointer-events: none;
+  stroke: rgb(18 35 31 / 34%);
+  stroke-width: 2px;
+  stroke-linejoin: round;
+}
+
+.tool-mosaic-plot .mosaic-plot-target-outline {
+  fill: none;
+  pointer-events: none;
+  stroke: rgb(255 255 255 / 82%);
+  stroke-width: 2;
+}
+
+.tool-mosaic-plot .mosaic-plot-note {
+  margin: 5px 4px 0;
+  color: var(--ink-faint);
+  font-size: 10px;
+  line-height: 1.5;
+  text-align: right;
+}
+
+@media (max-width: 820px) {
+  .tool-mosaic-plot .mosaic-plot-header {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .tool-mosaic-plot .mosaic-plot-stats {
+    width: 100%;
+  }
+
+  .tool-mosaic-plot .mosaic-plot-controls {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .tool-mosaic-plot .mosaic-plot-order-control {
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 600px) {
+  .tool-mosaic-plot .mosaic-plot-header,
+  .tool-mosaic-plot .mosaic-plot-controls {
+    padding-inline: 16px;
+  }
+
+  .tool-mosaic-plot .mosaic-plot-stats {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .tool-mosaic-plot .mosaic-plot-stat {
+    min-width: 0;
+    padding: 8px 11px;
+    flex-direction: row;
+    align-items: baseline;
+    justify-content: space-between;
+  }
+
+  .tool-mosaic-plot .mosaic-plot-control,
+  .tool-mosaic-plot .mosaic-plot-layout-control {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .tool-mosaic-plot .mosaic-plot-order {
+    width: 100%;
+  }
+
+  .tool-mosaic-plot .mosaic-plot-order-button {
+    flex: 1;
+  }
+
+  .tool-mosaic-plot .mosaic-plot-stage {
+    padding-inline: 12px;
+  }
+
+  .tool-mosaic-plot .mosaic-plot-viewport {
+    min-height: 340px;
+    margin-inline: -12px;
+    padding-inline: 12px;
+  }
+
+  .tool-mosaic-plot .mosaic-plot-note {
+    text-align: left;
+  }
+}

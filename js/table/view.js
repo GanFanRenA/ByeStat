@@ -167,19 +167,25 @@
     refs.footerCountPrefix = h("span");
     refs.footerCountMiddle = h("span");
     refs.footerCountSuffix = h("span");
+    refs.scopeControl = ByeStat.table.scope.createControl(refs.language);
     return h(
       "footer",
       { class: "editor-footer" },
-      refs.footerDataLabel,
       h(
-        "p",
-        {},
-        refs.footerCountPrefix,
-        refs.footerRowCount,
-        refs.footerCountMiddle,
-        refs.footerColumnCount,
-        refs.footerCountSuffix,
+        "div",
+        { class: "footer-summary" },
+        refs.footerDataLabel,
+        h(
+          "p",
+          {},
+          refs.footerCountPrefix,
+          refs.footerRowCount,
+          refs.footerCountMiddle,
+          refs.footerColumnCount,
+          refs.footerCountSuffix,
+        ),
       ),
+      refs.scopeControl.element,
     );
   }
 
@@ -211,6 +217,7 @@
     setText(refs.footerCountPrefix, t("table.footer.prefix"));
     setText(refs.footerCountMiddle, t("table.footer.middle"));
     setText(refs.footerCountSuffix, t("table.footer.suffix"));
+    refs.scopeControl.applyLanguage();
     refs.rowGroup.setAttribute("aria-label", t("table.toolbar.rowGroupAria"));
     refs.columnGroup.setAttribute(
       "aria-label",
@@ -274,5 +281,9 @@
     return refs;
   }
 
-  tableModule.view = { applyLanguage, createView };
+  function setScope(refs, scope) {
+    refs.scopeControl.setValue(scope);
+  }
+
+  tableModule.view = { applyLanguage, createView, setScope };
 })(window);

@@ -4,14 +4,11 @@
   const ByeStat = (global.ByeStat = global.ByeStat || {});
   const { adapt, render, view } = ByeStat.table;
   const { load, normalize, save } = ByeStat.table.selection;
-  const ACTION_KEYS = {
-    "insert-row-above": "table.action.insertedRow",
-    "insert-row-below": "table.action.insertedRow",
-    "delete-row": "table.action.deletedRow",
-    "insert-column-left": "table.action.insertedColumn",
-    "insert-column-right": "table.action.insertedColumn",
-    "delete-column": "table.action.deletedColumn",
-  };
+  const { createControls } = ByeStat.table.controls;
+  const {
+    createDisplayRegistrar,
+    createSummaryRegistrar,
+  } = ByeStat.table.extensions;
 
   function drawTable(refs, store, viewState, focus = false) {
     const state = store.getState();
@@ -28,6 +25,7 @@
         : null,
       store.canUndo(),
       viewState.summary,
+      viewState.display,
     );
     save(viewState.selection);
   }
@@ -42,6 +40,7 @@
         viewState.selection,
         store.canUndo(),
         viewState.summary,
+        viewState.display,
       );
       save(viewState.selection);
       return;
@@ -49,91 +48,36 @@
     drawTable(refs, store, viewState, focus);
   }
 
-  function createControls({ refs, store, viewState }) {
-    function setSelection(next) {
-      viewState.selection = next;
-      save(next);
-      render.syncView(
-        refs,
-        store.getState(),
-        next,
-        store.canUndo(),
-        viewState.summary,
-      );
-    }
-
-    function runAction(action) {
-      const selection = viewState.selection;
-      let changed = false;
-      if (action === "insert-row-above") {
-        changed = store.insertRow(selection.row);
-      } else if (action === "insert-row-below") {
-        selection.row += 1;
-        changed = store.insertRow(selection.row);
-      } else if (action === "delete-row") {
-        changed = store.deleteRow(selection.row);
-      } else if (action === "insert-column-left") {
-        changed = store.insertColumn(selection.col);
-      } else if (action === "insert-column-right") {
-        selection.col += 1;
-        changed = store.insertColumn(selection.col);
-      } else if (action === "delete-column") {
-        changed = store.deleteColumn(selection.col);
-      }
-      if (changed) render.showToast(refs, refs.language.t(ACTION_KEYS[action]));
-    }
-
-    function undo() {
-      if (store.undo()) {
-        render.showToast(refs, refs.language.t("table.action.undo"));
-      }
-    }
-
-    function reset() {
-      viewState.selection = { row: 0, col: 0 };
-      store.reset();
-      render.showToast(refs, refs.language.t("table.action.reset"));
-    }
-
-    return {
-      getSelection: () => viewState.selection,
-      reset,
-      runAction,
-      setSelection,
-      undo,
-    };
-  }
-
-  function createSummaryRegistrar(refs, store, viewState) {
-    return function registerSummary(nextSummary) {
-      if (!nextSummary || typeof nextSummary.values !== "function") {
-        return () => {};
-      }
-      viewState.summary = nextSummary;
-      drawTable(refs, store, viewState);
-      let active = true;
-
-      return function unregisterSummary() {
-        if (!active) return;
-        active = false;
-        if (viewState.summary !== nextSummary) return;
-        viewState.summary = null;
-        drawTable(refs, store, viewState);
-      };
-    };
-  }
-
   function mount(root, store, language) {
     const refs = view.createView(root, language);
     const viewState = {
+      analysisScope: "total",
       selection: load(),
+      display: null,
       summary: null,
     };
+    const scopeListeners = new Set();
     let destroyed = false;
-    const registerSummary = createSummaryRegistrar(refs, store, viewState);
-    const controls = createControls({ refs, store, viewState });
+    const refresh = () => drawTable(refs, store, viewState);
+    const registerSummary = createSummaryRegistrar(viewState, refresh);
+    const registerCellDisplay = createDisplayRegistrar(viewState, refresh);
+    const controls = createControls({
+      refs,
+      store,
+      viewState,
+      onScopeChange(scope) {
+        scopeListeners.forEach((listener) => {
+          try {
+            listener(scope);
+          } catch (error) {
+            console.error("统计范围订阅回调失败。", error);
+          }
+        });
+      },
+    });
 
     drawTable(refs, store, viewState);
+    view.setScope(refs, viewState.analysisScope);
     const cleanup = adapt.bind({ refs, store, controls });
     const unsubscribeLanguage = language.subscribe(() => {
       if (destroyed) return;
@@ -147,6 +91,12 @@
     });
 
     return {
+      getAnalysisScope: () => viewState.analysisScope,
+      subscribeAnalysisScope(listener) {
+        if (destroyed || typeof listener !== "function") return () => {};
+        scopeListeners.add(listener);
+        return () => scopeListeners.delete(listener);
+      },
       registerSummary(nextSummary) {
         if (destroyed) return () => {};
         const unregister = registerSummary(nextSummary);
@@ -154,10 +104,19 @@
           if (!destroyed) unregister();
         };
       },
+      registerCellDisplay(nextDisplay) {
+        if (destroyed) return () => {};
+        const unregister = registerCellDisplay(nextDisplay);
+        return () => {
+          if (!destroyed) unregister();
+        };
+      },
       dispose() {
         if (destroyed) return;
         destroyed = true;
+        viewState.display = null;
         viewState.summary = null;
+        scopeListeners.clear();
         cleanup();
         unsubscribe();
         unsubscribeLanguage();

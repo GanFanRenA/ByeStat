@@ -78,7 +78,15 @@
     return headRow;
   }
 
-  function createBodyRow(refs, row, rowIndex, summary, summaryData) {
+  function createBodyRow(
+    refs,
+    row,
+    rowIndex,
+    summary,
+    summaryData,
+    display,
+    displayData,
+  ) {
     const t = refs.language.t;
     const tr = h(
       "tr",
@@ -98,6 +106,14 @@
       ),
     );
     row.values.forEach((value, col) => {
+      const derived =
+        displayData &&
+        summaryRender.createCellDisplay(
+          display,
+          displayData.cells[rowIndex]?.[col],
+          rowIndex,
+          col,
+        );
       tr.append(
         h(
           "td",
@@ -111,6 +127,7 @@
             "number",
             { row: rowIndex, col },
           ),
+          derived,
         ),
       );
     });
@@ -124,6 +141,8 @@
           ),
           t("table.cell.rowTotalAria", { row: rowIndex + 1 }),
           { row: rowIndex },
+          display,
+          displayData?.summary?.rowTotals[rowIndex],
         ),
       );
     }
@@ -140,6 +159,16 @@
     }
   }
 
+  function setDisplayClass(refs, display, enabled) {
+    if (refs.activeDisplayClass) {
+      refs.table.classList.remove(refs.activeDisplayClass);
+    }
+    refs.activeDisplayClass = enabled ? display.className || "" : "";
+    if (refs.activeDisplayClass) {
+      refs.table.classList.add(refs.activeDisplayClass);
+    }
+  }
+
   function renderTable(
     refs,
     state,
@@ -147,9 +176,12 @@
     focusTarget = null,
     canUndo = false,
     summary = null,
+    display = null,
   ) {
     const summaryData = summaryRender.getSummaryData(summary, state);
+    const displayData = summaryRender.getCellDisplayData(display, state);
     setSummaryClass(refs, summary, Boolean(summaryData));
+    setDisplayClass(refs, display, Boolean(displayData));
     refs.tableHead.replaceChildren();
     refs.tableBody.replaceChildren();
     refs.tableFoot.replaceChildren();
@@ -157,19 +189,42 @@
 
     state.rows.forEach((row, rowIndex) => {
       refs.tableBody.append(
-        createBodyRow(refs, row, rowIndex, summary, summaryData),
+        createBodyRow(
+          refs,
+          row,
+          rowIndex,
+          summary,
+          summaryData,
+          display,
+          displayData,
+        ),
       );
     });
-    summaryRender.renderSummaryRow(refs, state, summary, summaryData);
+    summaryRender.renderSummaryRow(
+      refs,
+      state,
+      summary,
+      summaryData,
+      display,
+      displayData?.summary,
+    );
 
-    syncView(refs, state, selection, canUndo, summary);
+    syncView(refs, state, selection, canUndo, summary, display, displayData);
     requestAnimationFrame(() => {
       if (focusTarget) focusCell(refs, focusTarget.row, focusTarget.col);
       else tableScroll.revealSelection(refs, selection);
     });
   }
 
-  function syncView(refs, state, selection, canUndo = false, summary = null) {
+  function syncView(
+    refs,
+    state,
+    selection,
+    canUndo = false,
+    summary = null,
+    display = null,
+    displayData = summaryRender.getCellDisplayData(display, state),
+  ) {
     setText(refs.footerRowCount, state.rows.length);
     setText(refs.footerColumnCount, state.columns.length);
     setText(
@@ -192,7 +247,14 @@
     refs.tableHead
       .querySelectorAll(`th[data-col="${selection.col}"]`)
       .forEach((cell) => cell.classList.add("is-column-selected"));
-    summaryRender.syncSummary(refs, state, summary);
+    summaryRender.syncSummary(
+      refs,
+      state,
+      summary,
+      display,
+      displayData?.summary,
+    );
+    summaryRender.syncCellDisplay(refs, state, display, displayData);
   }
 
   function focusCell(refs, row, col) {

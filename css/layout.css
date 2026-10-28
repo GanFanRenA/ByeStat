@@ -5,7 +5,7 @@
 .shell-frame {
   min-height: 100vh;
   display: grid;
-  grid-template-columns: 248px minmax(0, 1fr);
+  grid-template-columns: clamp(212px, 17vw, 264px) minmax(0, 1fr);
 }
 
 .app-sidebar {
@@ -139,6 +139,16 @@
   font-size: 9px;
   font-weight: 700;
   letter-spacing: 0.2em;
+}
+
+.sidebar-sections {
+  min-width: 0;
+  display: grid;
+  gap: 26px;
+}
+
+.sidebar-section {
+  min-width: 0;
 }
 
 .tool-list {
@@ -320,9 +330,12 @@
 }
 
 main {
+  --tool-stack-gap: clamp(18px, 2vw, 28px);
+  --tool-reveal-offset: 20px;
+
   flex: 1;
   min-width: 0;
-  padding: clamp(24px, 3vw, 40px);
+  padding: clamp(18px, 2.6vw, 52px);
 }
 
 .base-root,
@@ -330,12 +343,21 @@ main {
 .tool-mount {
   width: 100%;
   min-width: 0;
-  max-width: 1380px;
+  max-width: 1720px;
   margin: 0 auto;
 }
 
+.tool-root {
+  display: grid;
+  row-gap: var(--tool-stack-gap);
+}
+
+.tool-mount {
+  scroll-margin-top: var(--tool-reveal-offset);
+}
+
 .tool-root:not(:empty) {
-  margin-top: 24px;
+  margin-top: var(--tool-stack-gap);
 }
 
 .shell-error {
@@ -358,9 +380,16 @@ main {
   color: var(--ink-soft);
 }
 
-@media (max-width: 900px) {
+@media (min-width: 1021px) and (max-width: 1380px) {
+  .brand-copy small {
+    display: none;
+  }
+}
+
+@media (max-width: 1020px) {
   .shell-frame {
     grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
   }
 
   .app-sidebar {
@@ -370,7 +399,7 @@ main {
     grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: center;
     gap: 18px;
-    padding: 11px 20px;
+    padding: 11px clamp(16px, 2.5vw, 26px);
     border-right: 0;
     border-bottom: 1px solid rgb(255 255 255 / 8%);
   }
@@ -404,6 +433,32 @@ main {
     flex-direction: row;
     align-items: center;
     margin: 0;
+    overflow: hidden;
+  }
+
+  .sidebar-sections {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .sidebar-sections::-webkit-scrollbar {
+    display: none;
+  }
+
+  .sidebar-section {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .sidebar-section + .sidebar-section {
+    padding-left: 10px;
+    border-left: 1px solid rgb(255 255 255 / 10%);
   }
 
   .sidebar-label {
@@ -414,7 +469,7 @@ main {
     min-width: 0;
     display: flex;
     gap: 4px;
-    overflow-x: auto;
+    overflow: visible;
     scrollbar-width: none;
   }
 
@@ -474,7 +529,9 @@ main {
   }
 
   main {
-    padding: 24px 18px 32px;
+    --tool-reveal-offset: 72px;
+
+    padding: clamp(18px, 2.4vw, 28px) 18px 32px;
   }
 }
 
@@ -482,7 +539,7 @@ main {
   .app-sidebar {
     grid-template-columns: minmax(0, 1fr) auto;
     gap: 10px 14px;
-    padding-block: 10px;
+    padding: 10px 18px;
   }
 
   .sidebar-nav {
@@ -492,8 +549,12 @@ main {
     overflow: hidden;
   }
 
-  .tool-list {
+  .sidebar-sections {
     width: 100%;
+  }
+
+  .tool-list {
+    width: auto;
   }
 
   .tool-nav-item {
@@ -501,10 +562,18 @@ main {
   }
 
   .save-copy strong {
-    max-width: 78px;
+    max-width: none;
+    font-size: 10px;
+  }
+
+  .save-state {
+    gap: 8px;
+    padding: 8px 10px;
   }
 
   main {
+    --tool-reveal-offset: 136px;
+
     padding: 18px 12px 28px;
   }
 }
